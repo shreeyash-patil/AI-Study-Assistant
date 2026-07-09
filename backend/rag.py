@@ -48,14 +48,14 @@ def get_answer(question: str, collection) -> str:
     context = "\n\n".join(results['documents'][0])
 
     prompt = f"""Answer the question based only on the following context. 
-If the answer is not in the context, say "I couldn't find the answer in the uploaded document."
+            If the answer is not in the context, say "I couldn't find the answer in the uploaded document."
 
-Context:
-{context}
+            Context:
+            {context}
 
-Question: {question}
+            Question: {question}
 
-Answer:"""
+            Answer:"""
 
     response = llm.invoke([HumanMessage(content=prompt)])
     return response.content
