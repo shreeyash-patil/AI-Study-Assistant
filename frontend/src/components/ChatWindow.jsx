@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import ReactMarkdown from 'react-markdown'
 
 export default function ChatWindow({ onAsk, isAsking, messages, sessionId }) {
   const [input, setInput] = useState('')
@@ -43,7 +44,20 @@ export default function ChatWindow({ onAsk, isAsking, messages, sessionId }) {
                   ? 'bg-indigo-600 text-white'
                   : 'bg-slate-800 text-slate-200'
               }`}>
-                {msg.content}
+                {msg.role === 'user' ? msg.content : (
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                      strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
+                      ul: ({ children }) => <ul className="list-disc list-inside space-y-1 mb-2">{children}</ul>,
+                      ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 mb-2">{children}</ol>,
+                      li: ({ children }) => <li className="text-slate-200">{children}</li>,
+                      code: ({ children }) => <code className="bg-slate-700 rounded px-1 py-0.5 text-xs font-mono text-indigo-300">{children}</code>,
+                    }}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
+                )}
               </div>
             </div>
           ))
