@@ -2,6 +2,7 @@ import { useState } from 'react'
 import axios from 'axios'
 import UploadZone from './components/UploadZone'
 import ChatWindow from './components/ChatWindow'
+import Toast from './components/Toast'
 
 const API = 'http://localhost:8000'
 
@@ -11,6 +12,7 @@ export default function App() {
   const [messages, setMessages] = useState([])
   const [isUploading, setIsUploading] = useState(false)
   const [isAsking, setIsAsking] = useState(false)
+  const [error, setError] = useState(null)
 
   const handleUpload = async (file) => {
     setIsUploading(true)
@@ -23,7 +25,7 @@ export default function App() {
       setSessionId(res.data.session_id)
       setFileName(file.name)
     } catch (err) {
-      alert('Failed to upload PDF. Make sure the backend is running.')
+      setError('Failed to upload PDF. Make sure the backend is running.')
     } finally {
       setIsUploading(false)
     }
@@ -39,7 +41,8 @@ export default function App() {
       })
       setMessages(prev => [...prev, { role: 'assistant', content: res.data.answer }])
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
+      setMessages(prev => [...prev, { role: 'assistant', content: '❌ Failed to get answer. Please try again.' }])
+      setError('Something went wrong while asking the question.')
     } finally {
       setIsAsking(false)
     }
@@ -47,7 +50,8 @@ export default function App() {
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-      className="bg-slate-950 text-white">
+    className="bg-slate-950 text-white">
+      <Toast message={error} onClose={() => setError(null)} />
       
       <div className="px-6 py-5 border-b border-slate-800">
         <h1 className="text-xl font-bold text-white">Study Assistant</h1>
