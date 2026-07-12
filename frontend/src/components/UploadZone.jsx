@@ -43,8 +43,8 @@ export default function UploadZone({ onUpload, isUploading, sessionId, fileName 
         />
 
         {isUploading ? (
-          <div className="text-indigo-400">
-            <div className="text-2xl mb-2">⏳</div>
+          <div className="text-indigo-400 flex flex-col items-center">
+            <div className="w-8 h-8 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin mb-3" />
             <p className="text-sm">Processing PDF...</p>
           </div>
         ) : sessionId ? (
