@@ -49,28 +49,36 @@ export default function App() {
   }
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-    className="bg-slate-950 text-white">
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
+      className="bg-slate-950 text-white">
+
       <Toast message={error} onClose={() => setError(null)} />
-      
-      <div className="px-6 py-5 border-b border-slate-800">
+
+      <div className="px-4 py-4 border-b border-slate-800 shrink-0">
         <h1 className="text-xl font-bold text-white">Study Assistant</h1>
         <p className="text-slate-400 text-sm mt-0.5">Upload a PDF and ask questions about it</p>
       </div>
 
-      <div style={{ flex: 1, overflow: 'hidden', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px', padding: '24px' }}>
-        <UploadZone
-          onUpload={handleUpload}
-          isUploading={isUploading}
-          sessionId={sessionId}
-          fileName={fileName}
-        />
-        <ChatWindow
-          onAsk={handleAsk}
-          isAsking={isAsking}
-          messages={messages}
-          sessionId={sessionId}
-        />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '16px', gap: '16px', maxWidth: '900px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
+
+        <div className="shrink-0">
+          <UploadZone
+            onUpload={handleUpload}
+            isUploading={isUploading}
+            sessionId={sessionId}
+            fileName={fileName}
+          />
+        </div>
+
+        <div style={{ flex: 1, overflow: 'hidden', minHeight: '400px' }}>
+          <ChatWindow
+            onAsk={handleAsk}
+            isAsking={isAsking}
+            messages={messages}
+            sessionId={sessionId}
+          />
+        </div>
+
       </div>
     </div>
   )

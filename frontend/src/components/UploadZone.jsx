@@ -23,7 +23,7 @@ export default function UploadZone({ onUpload, isUploading, sessionId, fileName 
   }
 
   return (
-    <div className="bg-slate-900 rounded-xl border border-slate-800 p-5">
+    <div className="bg-slate-900 rounded-xl border border-slate-800 p-5 h-full">
       <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
         Upload PDF
       </h2>
