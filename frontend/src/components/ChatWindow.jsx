@@ -23,7 +23,7 @@ export default function ChatWindow({ onAsk, isAsking, messages, sessionId }) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '400px', overflow: 'hidden' }}
       className="bg-slate-900 rounded-xl border border-slate-800">
 
       <div className="p-5 border-b border-slate-800 shrink-0">
