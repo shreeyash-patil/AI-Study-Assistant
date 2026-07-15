@@ -4,7 +4,7 @@ import UploadZone from './components/UploadZone'
 import ChatWindow from './components/ChatWindow'
 import Toast from './components/Toast'
 
-const API = 'http://localhost:8000'
+const API = 'https://ai-study-assistant-f3vo.onrender.com/'
 
 export default function App() {
   const [sessionId, setSessionId] = useState(null)
