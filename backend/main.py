@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from models import QuestionRequest, AnswerResponse
 from pdf_processor import parse_pdf, generate_session_id
-from rag import build_vector_store, get_answer
+from rag import build_vector_store, get_answer, get_vector_store
 import uvicorn
 
 app = FastAPI()
@@ -40,10 +40,10 @@ async def upload_pdf(file: UploadFile = File(...)):
 
 @app.post("/ask", response_model=AnswerResponse)
 async def ask_question(request: QuestionRequest):
-    if request.session_id not in sessions:
-        raise HTTPException(status_code=404, detail="Session not found. Please upload a PDF first")
+    vector_store = get_vector_store(request.session_id)
     
-    vector_store = sessions[request.session_id]
+    if vector_store is None:
+        raise HTTPException(status_code=404, detail="Session not found. Please upload a PDF first")
     answer = get_answer(request.question, vector_store)
     
     return AnswerResponse(answer=answer, session_id=request.session_id)

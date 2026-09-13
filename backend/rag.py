@@ -10,7 +10,7 @@ load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-chroma_client = chromadb.Client()
+chroma_client = chromadb.PersistentClient(path="./chroma_data")
 embedding_function = DefaultEmbeddingFunction()
 
 llm = ChatGoogleGenerativeAI(
@@ -38,6 +38,16 @@ def build_vector_store(chunks: list[str], session_id: str):
     )
 
     return collection
+
+def get_vector_store(session_id: str):
+    try:
+        collection = chroma_client.get_collection(
+            name=session_id,
+            embedding_function=embedding_function
+        )
+        return collection
+    except Exception:
+        return None
 
 def get_answer(question: str, collection) -> str:
     results = collection.query(
