@@ -6,14 +6,11 @@ def parse_pdf(file_bytes: bytes) -> list[str]:
     chunks = []
 
     for page in doc:
-        tables = page.find_tables()
-        table_bboxes = [table.bbox for table in tables]
-
-        text = page.get_text()
-
+        text = extract_text_with_columns(page)
         if text.strip():
             chunks.append(text)
 
+        tables = page.find_tables()
         for table in tables:
             markdown_table = table_to_markdown(table)
             if markdown_table:
@@ -21,24 +18,47 @@ def parse_pdf(file_bytes: bytes) -> list[str]:
 
     return chunks
 
+
+def extract_text_with_columns(page) -> str:
+    blocks = page.get_text("blocks")
+    text_blocks = [b for b in blocks if b[6] == 0 and b[4].strip()]
+
+    if not text_blocks:
+        return ""
+
+    page_width = page.rect.width
+    mid = page_width / 2
+
+    left_blocks = [b for b in text_blocks if b[0] < mid - 20]
+    right_blocks = [b for b in text_blocks if b[0] >= mid - 20]
+
+    # Only treat as 2-column if BOTH sides have a meaningful amount of content —
+    # otherwise a single sidebar/caption could falsely trigger column splitting
+    if len(left_blocks) >= 3 and len(right_blocks) >= 3:
+        left_blocks.sort(key=lambda b: b[1])
+        right_blocks.sort(key=lambda b: b[1])
+        ordered = left_blocks + right_blocks
+    else:
+        ordered = sorted(text_blocks, key=lambda b: b[1])
+
+    return "\n".join(b[4] for b in ordered)
+
+
 def table_to_markdown(table) -> str:
     try:
         data = table.extract()
-        if not data or len(data) == 0:
+        if not data:
             return ""
-
         rows = [[cell if cell else "" for cell in row] for row in data]
-
         header = rows[0]
         markdown = "| " + " | ".join(header) + " |\n"
         markdown += "| " + " | ".join(["---"] * len(header)) + " |\n"
-
         for row in rows[1:]:
             markdown += "| " + " | ".join(row) + " |\n"
-
         return markdown
     except Exception:
         return ""
+
 
 def generate_session_id() -> str:
     return str(uuid.uuid4())
