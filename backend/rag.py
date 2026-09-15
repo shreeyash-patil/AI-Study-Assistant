@@ -7,7 +7,6 @@ import chromadb
 import os
 import redis
 import uuid
-import json
 
 load_dotenv()
 
@@ -30,38 +29,24 @@ llm = ChatGoogleGenerativeAI(
     temperature=0.3
 )
 
-def build_vector_store(parsed: dict, session_id: str):
+def build_vector_store(chunks: list[str], session_id: str):
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
-        chunk_overlap=200,
-        add_start_index=True
+        chunk_overlap=200
     )
-
-    split_docs = splitter.create_documents([parsed["full_text"]])
-
-    doc_texts = []
-    doc_metadatas = []
-
-    for doc in split_docs:
-        start = doc.metadata.get("start_index", 0)
-        end = start + len(doc.page_content)
-        page_start, page_end = get_pages_for_span(start, end, parsed["page_boundaries"])
-        doc_texts.append(doc.page_content)
-        doc_metadatas.append({"page_start": page_start, "page_end": page_end})
-
-    for table in parsed["table_chunks"]:
-        doc_texts.append(table["text"])
-        doc_metadatas.append({"page_start": table["page"], "page_end": table["page"]})
+    split_chunks = splitter.create_documents(chunks)
+    texts = [doc.page_content for doc in split_chunks]
 
     collection = chroma_client.create_collection(
         name=session_id,
         embedding_function=embedding_function
     )
+
     collection.add(
-        documents=doc_texts,
-        metadatas=doc_metadatas,
-        ids=[f"{session_id}_{i}" for i in range(len(doc_texts))]
+        documents=texts,
+        ids=[f"{session_id}_{i}" for i in range(len(texts))]
     )
+
     return collection
 
 def get_vector_store(session_id: str):
@@ -74,7 +59,7 @@ def get_vector_store(session_id: str):
     except Exception:
         return None
 
-def get_answer(question: str, collection):
+def get_answer(question: str, collection) -> str:
     results = collection.query(
         query_texts=[question],
         n_results=3
@@ -82,25 +67,18 @@ def get_answer(question: str, collection):
 
     context = "\n\n".join(results['documents'][0])
 
-    pages = set()
-    for meta in results['metadatas'][0]:
-        if meta and "page_start" in meta:
-            for p in range(meta["page_start"], meta["page_end"] + 1):
-                pages.add(p)
-    source_pages = sorted(pages)
-
     prompt = f"""Answer the question based only on the following context. 
-If the answer is not in the context, say "I couldn't find the answer in the uploaded document."
+            If the answer is not in the context, say "I couldn't find the answer in the uploaded document."
 
-Context:
-{context}
+            Context:
+            {context}
 
-Question: {question}
+            Question: {question}
 
-Answer:"""
+            Answer:"""
 
     response = llm.invoke([HumanMessage(content=prompt)])
-    return response.content, source_pages
+    return response.content
 
 def get_cache_collection(session_id: str):
     try:
@@ -129,22 +107,13 @@ def check_cache(question: str, session_id: str):
 
     if distance < CACHE_SIMILARITY_THRESHOLD:
         cached_id = results['ids'][0][0]
-        cached = redis_client.get(f"answer:{session_id}:{cached_id}")
-        if cached:
-            return json.loads(cached)
+        return redis_client.get(f"answer:{session_id}:{cached_id}")
 
     return None
 
-def store_in_cache(question: str, answer: str, source_pages: list, session_id: str):
+def store_in_cache(question: str, answer: str, session_id: str):
     cache_collection = get_cache_collection(session_id)
     entry_id = str(uuid.uuid4())
 
     cache_collection.add(documents=[question], ids=[entry_id])
-    payload = json.dumps({"answer": answer, "source_pages": source_pages})
-    redis_client.set(f"answer:{session_id}:{entry_id}", payload)
-
-def get_pages_for_span(start, end, page_boundaries):
-    pages = [p for (b_start, b_end, p) in page_boundaries if start < b_end and end > b_start]
-    if not pages:
-        return (1, 1)
-    return (min(pages), max(pages))
+    redis_client.set(f"answer:{session_id}:{entry_id}", answer)

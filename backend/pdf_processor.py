@@ -1,32 +1,22 @@
 import fitz
 import uuid
 
-def parse_pdf(file_bytes: bytes) -> dict:
+def parse_pdf(file_bytes: bytes) -> list[str]:
     doc = fitz.open(stream=file_bytes, filetype="pdf")
+    chunks = []
 
-    full_text = ""
-    page_boundaries = []  # (start_offset, end_offset, page_num)
-    table_chunks = []     # [{"text": ..., "page": ...}]
-
-    for page_num, page in enumerate(doc, start=1):
+    for page in doc:
         text = extract_text_with_columns(page)
-        start_offset = len(full_text)
         if text.strip():
-            full_text += text + "\n"
-        end_offset = len(full_text)
-        page_boundaries.append((start_offset, end_offset, page_num))
+            chunks.append(text)
 
         tables = page.find_tables()
         for table in tables:
             markdown_table = table_to_markdown(table)
             if markdown_table:
-                table_chunks.append({"text": markdown_table, "page": page_num})
+                chunks.append(markdown_table)
 
-    return {
-        "full_text": full_text,
-        "page_boundaries": page_boundaries,
-        "table_chunks": table_chunks
-    }
+    return chunks
 
 
 def extract_text_with_columns(page) -> str:
@@ -42,6 +32,8 @@ def extract_text_with_columns(page) -> str:
     left_blocks = [b for b in text_blocks if b[0] < mid - 20]
     right_blocks = [b for b in text_blocks if b[0] >= mid - 20]
 
+    # Only treat as 2-column if BOTH sides have a meaningful amount of content —
+    # otherwise a single sidebar/caption could falsely trigger column splitting
     if len(left_blocks) >= 3 and len(right_blocks) >= 3:
         left_blocks.sort(key=lambda b: b[1])
         right_blocks.sort(key=lambda b: b[1])
