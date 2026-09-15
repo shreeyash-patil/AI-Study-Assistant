@@ -45,6 +45,7 @@ export default function ChatWindow({ onAsk, isAsking, messages, sessionId }) {
                   : 'bg-slate-800 text-slate-200'
               }`}>
                 {msg.role === 'user' ? msg.content : (
+  <>
                   <ReactMarkdown
                     components={{
                       p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
@@ -55,9 +56,15 @@ export default function ChatWindow({ onAsk, isAsking, messages, sessionId }) {
                       code: ({ children }) => <code className="bg-slate-700 rounded px-1 py-0.5 text-xs font-mono text-indigo-300">{children}</code>,
                     }}
                   >
-                    {msg.content}
+                  {msg.content}
                   </ReactMarkdown>
-                )}
+                    {msg.sourcePages && msg.sourcePages.length > 0 && (
+                      <p className="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-700">
+                        Source: {msg.sourcePages.length === 1 ? `Page ${msg.sourcePages[0]}` : `Pages ${msg.sourcePages.join(', ')}`}
+                      </p>
+                    )}
+                  </>
+              	)}
               </div>
             </div>
           ))

@@ -4,7 +4,8 @@ import UploadZone from './components/UploadZone'
 import ChatWindow from './components/ChatWindow'
 import Toast from './components/Toast'
 
-const API = 'https://ai-study-assistant-f3vo.onrender.com'
+// const API = 'https://ai-study-assistant-f3vo.onrender.com'
+const API = 'http://localhost:8000'
 
 export default function App() {
   const [sessionId, setSessionId] = useState(null)
@@ -39,7 +40,7 @@ export default function App() {
         question,
         session_id: sessionId
       })
-      setMessages(prev => [...prev, { role: 'assistant', content: res.data.answer }])
+      setMessages(prev => [...prev, { role: 'assistant', content: res.data.answer, sourcePages: res.data.source_pages }])
     } catch (err) {
       setMessages(prev => [...prev, { role: 'assistant', content: '❌ Failed to get answer. Please try again.' }])
       setError('Something went wrong while asking the question.')

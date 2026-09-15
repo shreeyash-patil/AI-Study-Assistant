@@ -7,3 +7,4 @@ class QuestionRequest(BaseModel):
 class AnswerResponse(BaseModel):
     answer: str
     session_id: str
+    source_pages: list[int] = []
