@@ -25,7 +25,7 @@ CACHE_SIMILARITY_THRESHOLD = 0.3  # lower distance = more similar; may need tuni
 embedding_function = DefaultEmbeddingFunction()
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
+    model="gemini-3.6-flash",
     google_api_key=GEMINI_API_KEY,
     temperature=0.3
 )

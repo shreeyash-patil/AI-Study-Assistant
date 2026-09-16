@@ -5,6 +5,7 @@ import ChatWindow from './components/ChatWindow'
 import Toast from './components/Toast'
 
 const API = 'https://ai-study-assistant-f3vo.onrender.com'
+// const API = 'http://localhost:8000'
 
 export default function App() {
   const [sessionId, setSessionId] = useState(null)
