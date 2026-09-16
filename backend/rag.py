@@ -14,11 +14,16 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 chroma_client = chromadb.PersistentClient(path="./chroma_data")
-redis_client = redis.Redis(
-    host=os.getenv("REDIS_HOST", "localhost"),
-    port=int(os.getenv("REDIS_PORT", 6379)),
-    decode_responses=True
-)
+redis_url = os.getenv("REDIS_URL")
+
+if redis_url:
+    redis_client = redis.from_url(redis_url, decode_responses=True)
+else:
+    redis_client = redis.Redis(
+        host=os.getenv("REDIS_HOST", "localhost"),
+        port=int(os.getenv("REDIS_PORT", 6379)),
+        decode_responses=True
+    )
 
 CACHE_SIMILARITY_THRESHOLD = 0.3  # lower distance = more similar; may need tuning
 
